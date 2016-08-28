@@ -1,0 +1,20 @@
+opam-version: "1.2"
+name: "unitypackage"
+version: "0.0.1"
+maintainer: "Sidharth Kuruvila <sidharth.kuruvila@gmail.com>"
+authors: "Sidharth Kuruvila <sidharth.kuruvila@gmail.com>"
+homepage: "http://github.com/sidharthkuruvila/unitypackage"
+dev-repo: "http://github.com/sidharthkuruvila/unitypackage.git"
+bug-reports: "http://github.com/sidharthkuruvila/unitypackage/issues"
+license: "MIT"
+build: [
+  [make unitypackage]
+]
+install: [make "install"]
+remove: ["ocamlfind" "remove" "unitypackage"]
+depends: [
+  "ocamlfind" {build}
+  "camlzip"
+  "tar-format"
+]
+available: [ (ocaml-version >= "4.00.0") & (ocaml-version < "4.04.0") ]
