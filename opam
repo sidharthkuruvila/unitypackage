@@ -16,5 +16,6 @@ depends: [
   "ocamlfind" {build}
   "camlzip"
   "tar-format"
+  "core"
 ]
 available: [ (ocaml-version >= "4.00.0") & (ocaml-version < "4.04.0") ]

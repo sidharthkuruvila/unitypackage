@@ -1,3 +1,5 @@
 true: package(tar)
 true: package(camlzip)
+true: package(core)
+true: thread
 <src> : include
