@@ -21,7 +21,3 @@ let extract src_file dest_directory =
     Tar_gzip.extract src_file ".dump";
     arrange ".dump" dest_directory;
     rm_recursive ".dump"
-
-let () = 
-    Tar.Header.compatibility_level := Tar.Header.Posix;
-    extract "NetworkInput.unitypackage" "dump3" 
