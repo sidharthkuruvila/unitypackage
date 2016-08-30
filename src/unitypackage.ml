@@ -1,9 +1,9 @@
 open Core.Std
 
 let extract_spec =
-    Command.Spec.(empty 
-        +> anon ("src_filename" %: string)
-        +> anon ("dest_directory" %: string))
+  Command.Spec.(empty 
+    +> anon ("src_filename" %: string)
+    +> anon ("dest_directory" %: string))
 
 let extract_command =
   Command.basic
@@ -14,9 +14,10 @@ let extract_command =
 
 
 let command_group =
-    Command.group ~summary:"Tool to extract and package unitypackage files"
-        ["extract", extract_command]
+  Command.group ~summary:"Tool to extract and package unitypackage files"
+    ["extract", extract_command]
 
 let () =
+  Tar.Header.compatibility_level := Tar.Header.Posix;
   Command.run command_group
 
