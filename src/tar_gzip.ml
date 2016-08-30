@@ -12,3 +12,16 @@ end
 
 
 module Reader = Tar.Make(Read_Gzip_Write_File)
+
+exception UnsupportedLinkType
+
+let extract file_name dest = 
+	let open Reader in
+    let open Header in
+    let read_header h =
+        match h.link_indicator with
+            Link.Normal -> h.file_name |> Filename.concat dest |> Pervasives.open_out |> Option.some
+          | Link.Directory -> Unix.mkdir (Filename.concat dest h.file_name); None 
+          | _ -> raise UnsupportedLinkType in
+    let gzip_chan = Gzip.open_in file_name in
+    Archive.extract_gen read_header gzip_chan

@@ -1,29 +1,64 @@
 open Core.Std
-open Tar_gzip.Reader
+
+let list_dir dir_name = 
+    let d = Unix.opendir dir_name in
+    let rec loop () =
+        try 
+            let f = Unix.readdir d in
+            f::loop ()
+        with 
+            End_of_file -> [] 
+        in
+    List.filter ~f:(fun f -> not (phys_equal (String.get f 0) '.')) (loop ())
+let join_path = Filename.concat
+
+let file_exists fn = match Sys.file_exists fn with `Yes -> true | _ -> false
+
+let split_filename = Filename.split
+
+let remove_file = Unix.unlink
+
+let remove_directory = Unix.rmdir
+
+let mkdir_p = Unix.mkdir_p
+
+let rename = Unix.rename
 
 
+let is_directory dn = 
+    let open Unix in
+    (stat dn).st_kind = S_DIR
 
+let rec rm_recursive fn =
+    if is_directory fn then begin
+        List.iter ~f:(fun x -> rm_recursive (join_path fn x)) (list_dir fn);
+        remove_directory fn
+    end
+    else
+        remove_file fn
 
-let list_files file_name  =
-    let gzip_chan = Gzip.open_in file_name in
-    let l = Archive.list ~level:Header.Posix gzip_chan in
+let arrange src dest =
+    let fds =  list_dir src in
+    let process_asset_directory d =
+        let base = join_path src d in
+        let pathname = "pathname" |> join_path base |> In_channel.read_all |> String.strip in
+        let dest_filename = join_path dest pathname in
+        let asset_filename = join_path base "asset" in
+        if file_exists asset_filename then
+            let (dn, fn) = split_filename dest_filename in
+            mkdir_p dn;
+            rename asset_filename dest_filename
+        else
+            mkdir_p dest_filename in
 
-    List.iter ~f:(fun h -> print_string Header.(h.file_name ^ " " ^  (Int64.to_string h.file_size) ^ " " ^ (Link.to_string h.link_indicator)); print_newline ()) l
-    
+    Unix.mkdir dest;
+    List.iter ~f:process_asset_directory fds
 
-exception UnsupportedLinkType
-
-let extract ?desto file_name = 
-    let open Header in
-    let dest = Option.value ~default:"." desto in
-    let read_header h =
-        match h.link_indicator with
-            Link.Normal -> h.file_name |> Filename.concat dest |> Pervasives.open_out |> Option.some
-          | Link.Directory -> Unix.mkdir (Filename.concat dest h.file_name); None 
-          | _ -> raise UnsupportedLinkType in
-    let gzip_chan = Gzip.open_in file_name in
-    Archive.extract_gen read_header gzip_chan
+let extract src_file dest_directory = 
+    Tar_gzip.extract src_file ".dump";
+    arrange ".dump" dest_directory;
+    rm_recursive ".dump"
 
 let () = 
     Tar.Header.compatibility_level := Tar.Header.Posix;
-    extract ~desto:"dump" "NetworkInput.unitypackage"
+    extract "NetworkInput.unitypackage" "dump3" 
