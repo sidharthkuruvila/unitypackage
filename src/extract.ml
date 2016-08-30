@@ -1,42 +1,5 @@
 open Core.Std
-
-let list_dir dir_name = 
-    let d = Unix.opendir dir_name in
-    let rec loop () =
-        try 
-            let f = Unix.readdir d in
-            f::loop ()
-        with 
-            End_of_file -> [] 
-        in
-    List.filter ~f:(fun f -> not (phys_equal (String.get f 0) '.')) (loop ())
-let join_path = Filename.concat
-
-let file_exists fn = match Sys.file_exists fn with `Yes -> true | _ -> false
-
-let split_filename = Filename.split
-
-let remove_file = Unix.unlink
-
-let remove_directory = Unix.rmdir
-
-let mkdir_p = Unix.mkdir_p
-
-let rename = Unix.rename
-
-
-let is_directory dn = 
-    let open Unix in
-    (stat dn).st_kind = S_DIR
-
-let rec rm_recursive fn =
-    if is_directory fn then begin
-        List.iter ~f:(fun x -> rm_recursive (join_path fn x)) (list_dir fn);
-        remove_directory fn
-    end
-    else
-        remove_file fn
-
+open Unix_util
 let arrange src dest =
     let fds =  list_dir src in
     let process_asset_directory d =
